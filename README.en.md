@@ -2,40 +2,37 @@
 
 [简体中文](./README.md) | [日本語](./README.ja.md)
 
-A macOS desktop app that turns a messy Xiaohongshu favorites folder into something you can actually browse, sort, revisit, and export.
+![XHS Organizer Icon](./Resources/AppIcon-1024.png)
 
-## The problem
+A macOS desktop app that turns a messy Xiaohongshu favorites folder into something you can actually sync, sort, revisit, and export.
+
+[Download latest release](https://github.com/leoyoyofiona/xiaohongshu-favorites/releases/latest) | [Release notes](https://github.com/leoyoyofiona/xiaohongshu-favorites/releases/tag/v0.1.0)
+
+## Why it exists
 
 - Favorites keep growing, but useful content becomes harder to find.
-- Xiaohongshu is not designed for long-term desktop organization.
-- Papers, tools, education notes, and inspiration all get mixed together.
+- Papers, tools, tutorials, and inspiration all get mixed together.
+- Xiaohongshu’s default UI is not built for long-term desktop organization.
 - Exporting the original text and images of a saved post is tedious.
 
-## What this app does
+## What it does
 
-- Syncs your Xiaohongshu favorites from a logged-in Chrome page.
+- Syncs your Xiaohongshu favorites from the current Chrome favorites page.
 - Deduplicates and auto-categorizes saved items.
 - Gives you a clean 3-column desktop layout.
-- Supports read status, favorites, previous/next article navigation.
-- Lets you export the current article text and all images in one click.
-- Builds a distributable `.dmg` for sharing.
-
-## How sync works
-
-- Sync currently depends on `Chrome`.
-- Open your Xiaohongshu favorites page in Chrome first.
-- Then return to the app and start sync.
-- This is the most stable approach so far and is less likely to trigger platform risk controls than embedded web syncing.
+- Supports read status, starred items, and previous/next article navigation.
+- Exports the current article text, source link, and all images in one click.
 
 ## Install
 
-### Option 1: Install from `.dmg`
+### Install from release
 
-1. Open `小红书收藏导航.dmg`
-2. Drag `小红书收藏导航.app` into `Applications`
-3. If macOS blocks the first launch, right-click and choose `Open`, or allow it in System Settings > Privacy & Security
+1. Open [Releases](https://github.com/leoyoyofiona/xiaohongshu-favorites/releases/latest)
+2. Download `小红书收藏导航.dmg`
+3. Drag `小红书收藏导航.app` into `Applications`
+4. If macOS blocks the first launch, right-click and choose `Open`
 
-### Option 2: Run from source
+### Run from source
 
 Requirements:
 
@@ -47,22 +44,15 @@ Requirements:
 swift run XHSOrganizerApp
 ```
 
-## Basic usage
+## How to use
 
-### 1. Sync favorites
+1. Open your Xiaohongshu favorites page in Chrome.
+2. Open the app.
+3. Click `同步小红书`.
+4. Click `从当前 Chrome 收藏夹同步`.
+5. Browse, read, and export inside the app.
 
-1. Open your Xiaohongshu favorites page in Chrome
-2. Open the app
-3. Click `同步小红书`
-4. Click `从当前 Chrome 收藏夹同步`
-
-### 2. Browse
-
-- Left: categories
-- Middle: saved list
-- Right: article content and images
-
-### 3. Export the current article
+## Export current article
 
 Click `下载原文` in the detail pane:
 
@@ -71,10 +61,17 @@ Click `下载原文` in the detail pane:
 - downloads all images from the current post
 - saves everything into `Downloads/小红书收藏导出/`
 
+## Current sync model
+
+- Sync currently depends on Chrome.
+- This is the most stable approach so far.
+- Embedded web syncing was more likely to trigger platform risk controls.
+- Older items imported with incomplete links may need one more sync pass.
+
 ## Project structure
 
 - `Sources/XHSOrganizerApp`: macOS SwiftUI app
-- `Sources/XHSOrganizerCore`: models, import pipeline, classification, search
+- `Sources/XHSOrganizerCore`: models, import, classification, search
 - `scripts/build_dmg.sh`: package `.app` and `.dmg`
 - `scripts/generate_app_icon.py`: generate the app icon
 
@@ -88,9 +85,3 @@ Outputs:
 
 - `dist/小红书收藏导航.app`
 - `dist/小红书收藏导航.dmg`
-
-## Current limitations
-
-- Sync currently relies on Chrome, not Safari or embedded web login.
-- Some Xiaohongshu posts are restricted on the web, so original-content extraction depends on link quality and page availability.
-- Old items imported with incomplete links may need one more sync pass to improve original-content coverage.
