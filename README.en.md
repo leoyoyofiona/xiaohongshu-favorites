@@ -2,7 +2,7 @@
 
 [简体中文](./README.md) | [日本語](./README.ja.md)
 
-![XHS Organizer Icon](./Resources/AppIcon-1024.png)
+![XHS Organizer Overview](./docs/assets/app-overview.png)
 
 A macOS desktop app that turns a messy Xiaohongshu favorites folder into something you can actually sync, sort, revisit, and export.
 
@@ -22,6 +22,16 @@ A macOS desktop app that turns a messy Xiaohongshu favorites folder into somethi
 - Gives you a clean 3-column desktop layout.
 - Supports read status, starred items, and previous/next article navigation.
 - Exports the current article text, source link, and all images in one click.
+
+## Screenshots
+
+### Main workspace
+
+![XHS Organizer main workspace](./docs/assets/app-overview.png)
+
+### Reading and export
+
+![XHS Organizer reading view](./docs/assets/app-reading.png)
 
 ## Install
 
