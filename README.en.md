@@ -54,7 +54,7 @@
 ### Download a release
 
 1. Open [Releases](https://github.com/leoyoyofiona/xiaohongshu-favorites/releases/latest)
-2. Download `小红书收藏导航.dmg`
+2. Download `XHS-Organizer-macOS.dmg`
 3. Drag `小红书收藏导航.app` into `Applications`
 4. If macOS blocks first launch, right-click and choose `Open`
 

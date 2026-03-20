@@ -54,7 +54,7 @@
 ### 直接下载
 
 1. 打开 [Releases](https://github.com/leoyoyofiona/xiaohongshu-favorites/releases/latest)
-2. 下载 `小红书收藏导航.dmg`
+2. 下载 `XHS-Organizer-macOS.dmg`
 3. 双击打开后，把 `小红书收藏导航.app` 拖进 `Applications`
 4. 如果 macOS 首次拦截，右键 `打开` 一次即可
 

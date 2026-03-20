@@ -54,7 +54,7 @@
 ### リリース版を使う
 
 1. [Releases](https://github.com/leoyoyofiona/xiaohongshu-favorites/releases/latest) を開く
-2. `小红书收藏导航.dmg` をダウンロード
+2. `XHS-Organizer-macOS.dmg` をダウンロード
 3. `小红书收藏导航.app` を `Applications` にドラッグ
 4. 初回起動で止められた場合は右クリックして `開く`
 
