@@ -240,7 +240,7 @@ public struct LibraryClassificationService: Sendable {
     ) -> ClassificationOutput {
         if let keywordBest = keywordScores.max(by: { $0.value < $1.value }),
            keywordBest.key != Category.uncategorizedSlug,
-           keywordBest.value >= 2 {
+           keywordBest.value >= 1 {
             return ClassificationOutput(
                 summary: output.summary,
                 tags: output.tags,
@@ -269,7 +269,7 @@ public struct LibraryClassificationService: Sendable {
     ) -> ClassificationOutput {
         if let keywordBest = keywordScores.max(by: { $0.value < $1.value }),
            keywordBest.key != Category.uncategorizedSlug,
-           keywordBest.value >= 2 {
+           keywordBest.value >= 1 {
             return ClassificationOutput(
                 summary: base.summary,
                 tags: base.tags,
@@ -319,7 +319,7 @@ public struct LibraryClassificationService: Sendable {
         guard let best = rescueScores.max(by: { $0.value < $1.value }) else { return output }
         let sortedScores = rescueScores.values.sorted(by: >)
         let secondScore = sortedScores.dropFirst().first ?? 0
-        let confident = best.value >= 6 || (best.value >= 4 && best.value - secondScore >= 1)
+        let confident = best.value >= 4 || (best.value >= 2 && best.value - secondScore >= 1)
         guard confident else { return output }
 
         return ClassificationOutput(

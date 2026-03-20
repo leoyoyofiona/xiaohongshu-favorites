@@ -6,19 +6,46 @@ public struct BrowserSyncNotePayload: Codable, Hashable, Sendable {
     public var text: String
     public var coverImageURL: String?
     public var author: String?
+    public var isVideo: Bool
+    public var videoURL: String?
 
     public init(
         url: String,
         title: String,
         text: String = "",
         coverImageURL: String? = nil,
-        author: String? = nil
+        author: String? = nil,
+        isVideo: Bool = false,
+        videoURL: String? = nil
     ) {
         self.url = url
         self.title = title
         self.text = text
         self.coverImageURL = coverImageURL
         self.author = author
+        self.isVideo = isVideo
+        self.videoURL = videoURL
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case url
+        case title
+        case text
+        case coverImageURL
+        case author
+        case isVideo
+        case videoURL
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        url = try container.decodeIfPresent(String.self, forKey: .url) ?? ""
+        title = try container.decodeIfPresent(String.self, forKey: .title) ?? ""
+        text = try container.decodeIfPresent(String.self, forKey: .text) ?? ""
+        coverImageURL = try container.decodeIfPresent(String.self, forKey: .coverImageURL)
+        author = try container.decodeIfPresent(String.self, forKey: .author)
+        isVideo = try container.decodeIfPresent(Bool.self, forKey: .isVideo) ?? false
+        videoURL = try container.decodeIfPresent(String.self, forKey: .videoURL)
     }
 }
 
@@ -95,6 +122,8 @@ public struct BrowserSyncImportService: Sendable {
         var importedCount = 0
         var duplicateCount = 0
         var failedCount = 0
+        var syncedCanonicalKeys: [String] = []
+        var syncedCanonicalKeySet: Set<String> = []
 
         for note in request.notes {
             let normalizedURL = note.url.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -127,8 +156,13 @@ public struct BrowserSyncImportService: Sendable {
                 importedAt: .now,
                 reviewState: classification.reviewState,
                 isCategoryManual: false,
-                sourceType: .link
+                sourceType: .link,
+                hasVideo: note.isVideo || note.videoURL?.isEmpty == false,
+                videoAssets: note.videoURL?.nilIfEmpty.map { [$0] } ?? []
             )
+            if syncedCanonicalKeySet.insert(item.canonicalKey).inserted {
+                syncedCanonicalKeys.append(item.canonicalKey)
+            }
 
             if store.upsertSavedItem(item, autosave: false) {
                 importedCount += 1
@@ -142,6 +176,7 @@ public struct BrowserSyncImportService: Sendable {
         if importedCount > 0 {
             store.reclassifyAllSavedItems()
         }
+        let recentSyncedItemIDs = resolveSyncedItemIDs(from: syncedCanonicalKeys, store: store)
         store.updateXHSSyncSettings { settings in
             settings.lastFavoritesURL = request.pageURL ?? settings.lastFavoritesURL
             settings.lastSyncAt = .now
@@ -149,6 +184,7 @@ public struct BrowserSyncImportService: Sendable {
             settings.lastCheckedAt = .now
             settings.lastKnownRemoteCount = request.notes.count
             settings.pendingUnsyncedCount = 0
+            settings.recentSyncedItemIDs = recentSyncedItemIDs
         }
 
         return BrowserSyncImportResult(
@@ -184,6 +220,8 @@ public struct BrowserSyncImportService: Sendable {
 
         var preparedItems: [SavedItem] = []
         preparedItems.reserveCapacity(totalCount)
+        var syncedCanonicalKeys: [String] = []
+        var syncedCanonicalKeySet: Set<String> = []
         var failedCount = 0
 
         for (index, note) in request.notes.enumerated() {
@@ -231,9 +269,15 @@ public struct BrowserSyncImportService: Sendable {
                 importedAt: .now,
                 reviewState: classification.reviewState,
                 isCategoryManual: false,
-                sourceType: .link
+                sourceType: .link,
+                hasVideo: note.isVideo || note.videoURL?.isEmpty == false,
+                videoAssets: note.videoURL?.nilIfEmpty.map { [$0] } ?? []
                 )
             )
+            if let canonicalKey = preparedItems.last?.canonicalKey,
+               syncedCanonicalKeySet.insert(canonicalKey).inserted {
+                syncedCanonicalKeys.append(canonicalKey)
+            }
 
             if let progress, (index + 1).isMultiple(of: 50) || index + 1 == totalCount {
                 await progress(
@@ -321,6 +365,7 @@ public struct BrowserSyncImportService: Sendable {
 
         let rescueSuffix = rescuedCount > 0 ? "，补分 \(rescuedCount) 条未分类" : ""
         let message = "浏览器同步完成：新增 \(importedCount) 条，合并 \(duplicateCount) 条，失败 \(failedCount) 条\(rescueSuffix)。"
+        let recentSyncedItemIDs = await MainActor.run { resolveSyncedItemIDs(from: syncedCanonicalKeys, store: store) }
         await MainActor.run {
             store.updateXHSSyncSettings { settings in
                 settings.lastFavoritesURL = request.pageURL ?? settings.lastFavoritesURL
@@ -329,6 +374,7 @@ public struct BrowserSyncImportService: Sendable {
                 settings.lastCheckedAt = .now
                 settings.lastKnownRemoteCount = request.notes.count
                 settings.pendingUnsyncedCount = 0
+                settings.recentSyncedItemIDs = recentSyncedItemIDs
             }
         }
 
@@ -353,6 +399,20 @@ public struct BrowserSyncImportService: Sendable {
             pageURL: request.pageURL,
             message: message
         )
+    }
+
+    @MainActor
+    private func resolveSyncedItemIDs(from canonicalKeys: [String], store: LibraryStore) -> [UUID] {
+        var ids: [UUID] = []
+        var idSet: Set<UUID> = []
+        ids.reserveCapacity(canonicalKeys.count)
+        for key in canonicalKeys {
+            guard let item = store.existingSavedItem(for: key) else { continue }
+            if idSet.insert(item.id).inserted {
+                ids.append(item.id)
+            }
+        }
+        return ids
     }
 }
 

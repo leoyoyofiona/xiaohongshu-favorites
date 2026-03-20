@@ -233,6 +233,10 @@ public final class LibraryStore {
         if merged.imageAssets.isEmpty {
             merged.imageAssets = item.imageAssets
         }
+        if merged.videoAssets.isEmpty {
+            merged.videoAssets = item.videoAssets
+        }
+        merged.hasVideo = merged.hasVideo || item.hasVideo || !merged.videoAssets.isEmpty
         if merged.tags.count < item.tags.count {
             merged.tags = item.tags
         }

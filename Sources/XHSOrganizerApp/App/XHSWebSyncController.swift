@@ -51,6 +51,11 @@ final class XHSWebSyncController: NSObject, WKNavigationDelegate {
         webView.load(URLRequest(url: url))
     }
 
+    func load(url: URL) {
+        statusText = "正在打开指定页面"
+        webView.load(URLRequest(url: url))
+    }
+
     func openProfilePage() {
         if let currentURL = webView.url, currentURL.host?.contains("xiaohongshu.com") == true {
             statusText = "正在当前页面里尝试打开“我/我的页面”"
@@ -265,7 +270,10 @@ final class XHSWebSyncController: NSObject, WKNavigationDelegate {
         pageTitle = webView.title ?? "小红书"
         currentURLString = webView.url?.absoluteString ?? ""
         refreshNavigationState()
-        Task { await refreshFavoritesFlag() }
+        Task {
+            await normalizeXHSPageLayoutIfNeeded()
+            await refreshFavoritesFlag()
+        }
     }
 
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
@@ -305,6 +313,15 @@ final class XHSWebSyncController: NSObject, WKNavigationDelegate {
         }
     }
 
+    private func normalizeXHSPageLayoutIfNeeded() async {
+        guard currentURLString.contains("xiaohongshu.com") else { return }
+        _ = try? await evaluateString(script: xhsLayoutNormalizationScript())
+        try? await Task.sleep(for: .milliseconds(350))
+        _ = try? await evaluateString(script: xhsLayoutNormalizationScript())
+        try? await Task.sleep(for: .milliseconds(900))
+        _ = try? await evaluateString(script: xhsLayoutNormalizationScript())
+    }
+
     private func ensureFavoritesPage() async throws {
         if try await isAccessLimited() {
             isRateLimited = true
@@ -323,6 +340,130 @@ final class XHSWebSyncController: NSObject, WKNavigationDelegate {
                 userInfo: [NSLocalizedDescriptionKey: "当前不是你的收藏夹页面。请先在内置页面里打开“我的收藏/收藏夹”，再执行同步。"]
             )
         }
+    }
+
+    private func xhsLayoutNormalizationScript() -> String {
+        """
+        (() => {
+          try {
+            const root = document.documentElement;
+            const body = document.body;
+            if (body) {
+              body.style.zoom = '1';
+            }
+            if (root) {
+              root.style.scrollBehavior = 'auto';
+            }
+            const normalize = () => {
+              const viewportHeight = window.innerHeight || 0;
+              const viewportWidth = window.innerWidth || 0;
+              const candidates = Array.from(document.querySelectorAll('div, section, aside, article'))
+                .filter((element) => {
+                  const style = window.getComputedStyle(element);
+                  const rect = element.getBoundingClientRect();
+                  const isOverlay = style.position === 'fixed' || style.position === 'absolute';
+                  const isVisible = rect.bottom > 0 && rect.right > 0 && rect.top < viewportHeight && rect.left < viewportWidth;
+                  const isLarge = rect.width > Math.min(520, viewportWidth * 0.32) && rect.height > Math.min(240, viewportHeight * 0.22);
+                  const isHighLayer = (parseInt(style.zIndex || '0', 10) || 0) >= 10 || style.position === 'fixed';
+                  return isOverlay && isVisible && isLarge && isHighLayer;
+                })
+                .sort((lhs, rhs) => {
+                  const leftRect = lhs.getBoundingClientRect();
+                  const rightRect = rhs.getBoundingClientRect();
+                  return rightRect.width * rightRect.height - leftRect.width * leftRect.height;
+                });
+
+              candidates.forEach((element) => {
+                const rect = element.getBoundingClientRect();
+                const tooLow = rect.top > viewportHeight * 0.04 || rect.bottom > viewportHeight * 0.84;
+                const tallOverlay = rect.height > viewportHeight * 0.52;
+                if (tooLow || tallOverlay) {
+                  const notePanel = rect.width > viewportWidth * 0.66 && rect.height > viewportHeight * 0.58;
+                  const extremelyTall = rect.height > viewportHeight * 0.90 || rect.bottom > viewportHeight * 0.99;
+                  element.style.setProperty('position', 'fixed', 'important');
+                  element.style.setProperty('left', '50%', 'important');
+                  element.style.setProperty('right', 'auto', 'important');
+                  element.style.setProperty('margin', '0', 'important');
+
+                  if (notePanel) {
+                    // Note dialogs should move up, but keep their internal scroll behavior intact.
+                    element.style.setProperty('top', '2%', 'important');
+                    element.style.setProperty('bottom', '2%', 'important');
+                    element.style.setProperty('transform', 'translateX(-50%)', 'important');
+                    element.style.setProperty('transform-origin', 'center top', 'important');
+                    element.style.setProperty('max-height', '98vh', 'important');
+                    // Force vertical scrolling on long note details (text + images).
+                    element.style.setProperty('overflow-y', 'auto', 'important');
+                    element.style.setProperty('overflow-x', 'hidden', 'important');
+                    element.style.setProperty('overscroll-behavior', 'contain', 'important');
+                    element.style.setProperty('min-height', '0', 'important');
+
+                    // Keep inner scrollers alive, otherwise long text+image notes stop halfway.
+                    const innerScrollables = Array.from(element.querySelectorAll('div, section, article'))
+                      .filter((node) => {
+                        const style = window.getComputedStyle(node);
+                        const rect = node.getBoundingClientRect();
+                        const canScroll = node.scrollHeight > node.clientHeight + 48;
+                        const likelyScrollable =
+                          style.overflowY === 'auto' || style.overflowY === 'scroll' || canScroll;
+                        return likelyScrollable && rect.height > viewportHeight * 0.22;
+                      });
+                    innerScrollables.forEach((node) => {
+                      node.style.setProperty('max-height', '90vh', 'important');
+                      node.style.setProperty('overflow-y', 'auto', 'important');
+                      node.style.setProperty('overflow-x', 'hidden', 'important');
+                      node.style.setProperty('min-height', '0', 'important');
+                      node.style.setProperty('overscroll-behavior', 'contain', 'important');
+                    });
+
+                    // Let mouse wheel always drive the deepest scrollable container.
+                    if (!element.__xhsOrganizerWheelBound) {
+                      element.addEventListener(
+                        'wheel',
+                        (event) => {
+                          const target = innerScrollables
+                            .slice()
+                            .sort((a, b) => b.clientHeight - a.clientHeight)
+                            .find((node) => node.scrollHeight > node.clientHeight + 16);
+                          if (!target) { return; }
+                          target.scrollTop += event.deltaY;
+                          event.preventDefault();
+                        },
+                        { passive: false }
+                      );
+                      element.__xhsOrganizerWheelBound = true;
+                    }
+                  } else {
+                    const top = extremelyTall ? '14%' : '22%';
+                    const shift = extremelyTall ? '-14%' : '-22%';
+                    const scale = extremelyTall ? ' scale(0.98)' : '';
+                    element.style.setProperty('top', top, 'important');
+                    element.style.setProperty('bottom', 'auto', 'important');
+                    element.style.setProperty('transform', `translate(-50%, ${shift})${scale}`, 'important');
+                    element.style.setProperty('transform-origin', 'center top', 'important');
+                    element.style.setProperty('max-height', '78vh', 'important');
+                    element.style.setProperty('overflow', 'auto', 'important');
+                  }
+                }
+              });
+            };
+
+            normalize();
+            if (!window.__xhsOrganizerOverlayObserver) {
+              const observer = new MutationObserver(() => {
+                requestAnimationFrame(normalize);
+              });
+              observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+              window.__xhsOrganizerOverlayObserver = observer;
+              window.__xhsOrganizerOverlayTimer = window.setInterval(normalize, 800);
+            }
+
+            return 'ok';
+          } catch (error) {
+            return 'error';
+          }
+        })();
+        """
     }
 
     private func triggerFavoritesNavigation() {

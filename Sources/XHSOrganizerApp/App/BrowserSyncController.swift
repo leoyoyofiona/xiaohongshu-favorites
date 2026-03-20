@@ -245,7 +245,7 @@ final class BrowserSyncController {
 
     private func bookmarklet() -> String {
         let payload = """
-        javascript:(function(){const normalize=(t)=>(t||'').replace(/\\s+/g,' ').trim();const notes=[];const seen=new Set();document.querySelectorAll('a[href]').forEach((anchor)=>{const raw=anchor.getAttribute('href');if(!raw)return;const href=new URL(raw,location.href).href;if(!(href.includes('/explore/')||href.includes('/discovery/item/')||href.includes('xhslink.com')))return;if(seen.has(href))return;const container=anchor.closest('section,article,li,div');const titleNode=container?.querySelector('img[alt],h1,h2,h3,h4,[class*="title"],[class*="desc"],[class*="note"]');const imageNode=anchor.querySelector('img')||container?.querySelector('img');const authorNode=container?.querySelector('[class*="author"],[class*="user"],[class*="name"]');const titleFromAlt=titleNode&&typeof titleNode.getAttribute==='function'?titleNode.getAttribute('alt'):'';const text=normalize(container?.innerText||anchor.innerText||'');const title=normalize(titleFromAlt||titleNode?.innerText||anchor.innerText||text).slice(0,120);if(!title)return;seen.add(href);notes.push({url:href,title,text:text.slice(0,500),coverImageURL:imageNode?.src||'',author:normalize(authorNode?.innerText||'')});});if(!notes.length){alert('当前页面没有识别到可同步的笔记卡片');return;}const payload={source:'bookmarklet-file-sync',pageURL:location.href,pageTitle:document.title,notes};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const anchor=document.createElement('a');anchor.href=url;anchor.download=`xhs-organizer-sync-${Date.now()}.json`;document.body.appendChild(anchor);anchor.click();anchor.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);alert(`已导出 ${notes.length} 条到下载文件夹，回到 App 等待自动导入`);})();
+        javascript:(function(){const normalize=(t)=>(t||'').replace(/\\s+/g,' ').trim();const notes=[];const seen=new Set();document.querySelectorAll('a[href]').forEach((anchor)=>{const raw=anchor.getAttribute('href');if(!raw)return;const href=new URL(raw,location.href).href;if(!(href.includes('/explore/')||href.includes('/discovery/item/')||href.includes('xhslink.com')))return;if(seen.has(href))return;const container=anchor.closest('section,article,li,div');const titleNode=container?.querySelector('img[alt],h1,h2,h3,h4,[class*="title"],[class*="desc"],[class*="note"]');const imageNode=anchor.querySelector('img')||container?.querySelector('img');const authorNode=container?.querySelector('[class*="author"],[class*="user"],[class*="name"]');const playNode=container?.querySelector('[class*=\"play\"],[aria-label*=\"播放\"],[class*=\"video\"]');const titleFromAlt=titleNode&&typeof titleNode.getAttribute==='function'?titleNode.getAttribute('alt'):'';const text=normalize(container?.innerText||anchor.innerText||'');const title=normalize(titleFromAlt||titleNode?.innerText||anchor.innerText||text).slice(0,120);if(!title)return;seen.add(href);notes.push({url:href,title,text:text.slice(0,500),coverImageURL:imageNode?.src||'',author:normalize(authorNode?.innerText||''),isVideo:Boolean(playNode)});});if(!notes.length){alert('当前页面没有识别到可同步的笔记卡片');return;}const payload={source:'bookmarklet-file-sync',pageURL:location.href,pageTitle:document.title,notes};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const anchor=document.createElement('a');anchor.href=url;anchor.download=`xhs-organizer-sync-${Date.now()}.json`;document.body.appendChild(anchor);anchor.click();anchor.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);alert(`已导出 ${notes.length} 条到下载文件夹，回到 App 等待自动导入`);})();
         """
         return payload.replacingOccurrences(of: "\n", with: "")
     }
@@ -364,7 +364,9 @@ final class BrowserSyncController {
             title: lhs.title.count >= rhs.title.count ? lhs.title : rhs.title,
             text: lhs.text.count >= rhs.text.count ? lhs.text : rhs.text,
             coverImageURL: lhs.coverImageURL ?? rhs.coverImageURL,
-            author: lhs.author ?? rhs.author
+            author: lhs.author ?? rhs.author,
+            isVideo: lhs.isVideo || rhs.isVideo,
+            videoURL: lhs.videoURL ?? rhs.videoURL
         )
     }
 
@@ -475,7 +477,11 @@ final class BrowserSyncController {
               title,
               text,
               coverImageURL: imageNode?.src || imageNode?.getAttribute('src') || '',
-              author: normalize(authorNode?.innerText || '')
+              author: normalize(authorNode?.innerText || ''),
+              isVideo: Boolean(
+                container?.querySelector('[class*="play"],[aria-label*="播放"],video,[class*="video"]') ||
+                anchor?.querySelector('[class*="play"],[aria-label*="播放"],video,[class*="video"]')
+              )
             };
           };
           const tokenMap = buildTokenMap();
@@ -508,7 +514,8 @@ final class BrowserSyncController {
               title: note.title,
               text: note.text,
               coverImageURL: note.coverImageURL,
-              author: note.author
+              author: note.author,
+              isVideo: note.isVideo
             });
           }
           return JSON.stringify({

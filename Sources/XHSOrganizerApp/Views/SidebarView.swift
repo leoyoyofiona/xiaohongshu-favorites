@@ -5,6 +5,7 @@ struct SidebarView: View {
     let categories: [XHSOrganizerCore.Category]
     let savedItems: [SavedItem]
     let failedImports: [ImportItem]
+    let recentSyncedItemIDs: [UUID]
     @Binding var selection: SidebarSelection
 
     var body: some View {
@@ -17,6 +18,8 @@ struct SidebarView: View {
             Section("浏览") {
                 row(label: "全部收藏", systemImage: "square.grid.2x2", badge: savedItems.count)
                     .tag(SidebarSelection.all)
+                row(label: "最近同步", systemImage: "clock.arrow.circlepath", badge: recentSyncCount)
+                    .tag(SidebarSelection.recentSync)
                 row(label: "重点收藏", systemImage: "heart", badge: savedItems.filter(\.isPinned).count)
                     .tag(SidebarSelection.pinned)
                 row(label: "已读", systemImage: "checkmark.circle", badge: savedItems.filter(\.isRead).count)
@@ -71,6 +74,15 @@ struct SidebarView: View {
 
     private func count(for slug: String) -> Int {
         savedItems.filter { $0.primaryCategorySlug == slug }.count
+    }
+
+    private var recentSyncCount: Int {
+        let idSet = Set(recentSyncedItemIDs)
+        return savedItems.reduce(into: 0) { partialResult, item in
+            if idSet.contains(item.id) {
+                partialResult += 1
+            }
+        }
     }
 
     private func icon(for slug: String) -> String {

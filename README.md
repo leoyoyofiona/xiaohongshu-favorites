@@ -1,45 +1,56 @@
 # 小红书收藏导航
 
-[English](./README.en.md) | [日本語](./README.ja.md)
+<p align="center">把越存越乱的小红书收藏夹，整理成一个适合桌面端复看、分类、导出和持续整理的 macOS 工具。</p>
 
-![小红书收藏导航主界面](./docs/assets/app-overview.png)
+<p align="center">
+  <a href="https://github.com/leoyoyofiona/xiaohongshu-favorites/releases/latest"><img src="https://img.shields.io/github/v/release/leoyoyofiona/xiaohongshu-favorites?display_name=tag&label=Release" alt="Release" /></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License" /></a>
+  <img src="https://img.shields.io/badge/macOS-15%2B-black?logo=apple" alt="macOS 15+" />
+  <img src="https://img.shields.io/badge/Swift-6.2-F05138?logo=swift&logoColor=white" alt="Swift 6.2" />
+</p>
 
-把小红书收藏夹从“越存越乱”变成一个能同步、能分类、能复看的 macOS 桌面工具。
+<p align="center">
+  <a href="./README.en.md">English</a> · <a href="./README.ja.md">日本語</a>
+</p>
 
-[下载最新版本](https://github.com/leoyoyofiona/xiaohongshu-favorites/releases/latest) | [查看 Release 说明](https://github.com/leoyoyofiona/xiaohongshu-favorites/releases/tag/v0.1.0)
+<p align="center">
+  <img src="./docs/assets/app-overview.png" alt="小红书收藏导航主界面" width="100%" />
+</p>
 
-## 为什么做这个
+## 为什么值得用
 
-- 收藏越来越多，真正要用的时候翻不到。
-- 论文、工具、教程、教育、灵感混在一起，很难复用。
-- 小红书原生收藏夹不适合长期整理和桌面端复盘。
-- 想保存原文和图片，手动处理很麻烦。
+- 收藏越积越多，真正要找时翻不到。
+- 论文、教程、工具、灵感混在一起，很难复用。
+- 小红书原生收藏夹适合“先存着”，不适合“后面系统整理”。
+- 想把原文、图片和重点内容留存下来，手动操作很碎。
 
-## 主要功能
+## 核心能力
 
-- 从当前 Chrome 小红书收藏夹同步到 App。
-- 自动去重、自动分类，把内容归到主分类。
-- 左侧分类导航，中间收藏列表，右侧阅读和导出。
-- 支持标记已读、标为重点、上一篇 / 下一篇快速浏览。
-- 支持一键下载当前文章原文和全部图片。
+- 从当前 Chrome 打开的小红书收藏夹页同步到本地 App。
+- 自动去重、自动主分类，减少收藏夹越堆越乱的问题。
+- 三栏桌面布局：左侧分类，中间列表，右侧按接近原文的方式阅读。
+- 支持已读、重点、上一篇 / 下一篇、最近同步快速回看。
+- 支持一键下载当前文章原文、原链接和全部图片。
+- 支持在 App 内直接打开小红书页面，继续浏览和同步。
 
 ## 界面预览
 
-### 主界面总览
+<p align="center">
+  <img src="./docs/assets/app-sync.png" alt="同步小红书面板" width="49%" />
+  <img src="./docs/assets/app-browser.png" alt="程序内打开小红书" width="49%" />
+</p>
 
-![小红书收藏导航主界面总览](./docs/assets/app-overview.png)
+<p align="center">
+  <sub>主界面 · 同步面板 · App 内浏览小红书</sub>
+</p>
 
-### 右侧阅读与导出
+## 安装
 
-![小红书收藏导航右侧阅读与导出](./docs/assets/app-reading.png)
-
-## 下载与安装
-
-### 直接安装
+### 直接下载
 
 1. 打开 [Releases](https://github.com/leoyoyofiona/xiaohongshu-favorites/releases/latest)
 2. 下载 `小红书收藏导航.dmg`
-3. 双击打开后，把 `小红书收藏导航.app` 拖到 `Applications`
+3. 双击打开后，把 `小红书收藏导航.app` 拖进 `Applications`
 4. 如果 macOS 首次拦截，右键 `打开` 一次即可
 
 ### 从源码运行
@@ -54,40 +65,48 @@
 swift run XHSOrganizerApp
 ```
 
-## 使用方法
+## 快速使用
 
 ### 1. 同步收藏夹
 
-1. 在 Chrome 打开你的小红书收藏夹页面
+1. 在 Chrome 打开你的小红书收藏夹页
 2. 打开 App
 3. 点击 `同步小红书`
 4. 点击 `从当前 Chrome 收藏夹同步`
 
 ### 2. 浏览与整理
 
-- 左侧：主分类导航
-- 中间：收藏列表
-- 右侧：正文、图片、重点标记、上一篇 / 下一篇
+- 左侧：全部收藏、最近同步、已读、重点、主分类
+- 中间：当前分类下的收藏列表
+- 右侧：按接近原文的方式阅读、切换上一篇 / 下一篇、调整分类
 
-### 3. 下载当前文章
+### 3. 导出当前文章
 
-在右侧详情区域点击 `下载原文`：
+右侧点击 `下载` 后会导出：
 
-- 导出 `原文.txt`
-- 导出 `原文链接.txt`
-- 下载当前文章全部图片
-- 保存到 `下载/小红书收藏导出/`
+- `原文.txt`
+- `原文链接.txt`
+- 当前文章全部图片
 
-## 当前方案说明
+默认保存到 `下载/小红书收藏导出/`
 
-- 当前同步依赖 Chrome，这是目前最稳的方案。
-- 相比 App 内嵌网页同步，这种方式更不容易触发平台风控。
-- 旧数据如果是早期同步得到的不完整链接，建议重新同步一次，以提升原文显示比例。
+## 当前同步方式
+
+- 当前同步依赖 Chrome，这是现阶段最稳的方案。
+- 相比强行全内嵌自动抓取，这种方式更不容易触发平台风控。
+- 对于早期导入的不完整旧数据，建议重新同步一次，以提升原文与图片完整度。
+
+## 技术栈
+
+- `SwiftUI + AppKit`：macOS 原生界面
+- `WKWebView`：程序内浏览小红书
+- `SwiftData / 本地 JSON 存储逻辑`：持久化收藏、状态和分类
+- `自定义导入与分类流水线`：同步、去重、重分类、导出
 
 ## 项目结构
 
-- `Sources/XHSOrganizerApp`：macOS SwiftUI 界面与桌面端逻辑
-- `Sources/XHSOrganizerCore`：数据模型、同步导入、分类、搜索
+- `Sources/XHSOrganizerApp`：macOS SwiftUI 界面与桌面逻辑
+- `Sources/XHSOrganizerCore`：数据模型、同步导入、分类、搜索、导出
 - `scripts/build_dmg.sh`：打包 `.app` 和 `.dmg`
 - `scripts/generate_app_icon.py`：生成 App 图标
 
@@ -101,3 +120,7 @@ swift run XHSOrganizerApp
 
 - `dist/小红书收藏导航.app`
 - `dist/小红书收藏导航.dmg`
+
+## 许可证
+
+本项目基于 [MIT License](./LICENSE) 开源。

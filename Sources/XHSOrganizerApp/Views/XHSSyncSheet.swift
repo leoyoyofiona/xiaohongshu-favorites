@@ -2,21 +2,40 @@ import SwiftUI
 import XHSOrganizerCore
 
 struct XHSSyncSheet: View {
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
     let store: LibraryStore
     let browserSync: BrowserSyncController
+    let onClose: () -> Void
+    @State private var xhsURLString = "https://www.xiaohongshu.com/explore"
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                header
-                statusPanel
-                actionsPanel
-                tipsPanel
+        ZStack {
+            Color.black.opacity(0.18)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    onClose()
+                }
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    header
+                    statusPanel
+                    actionsPanel
+                    tipsPanel
+                }
+                .padding(24)
             }
-            .padding(24)
+            .frame(maxWidth: 920)
+            .background(Color(NSColor.windowBackgroundColor), in: RoundedRectangle(cornerRadius: 24))
+            .overlay(
+                RoundedRectangle(cornerRadius: 24)
+                    .stroke(Color.black.opacity(0.06), lineWidth: 1)
+            )
+            .shadow(color: .black.opacity(0.12), radius: 30, y: 12)
+            .padding(.horizontal, 28)
+            .padding(.vertical, 32)
         }
-        .frame(minWidth: 760, idealWidth: 820, minHeight: 560, idealHeight: 620)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var header: some View {
@@ -30,7 +49,7 @@ struct XHSSyncSheet: View {
             }
             Spacer(minLength: 12)
             Button("关闭") {
-                dismiss()
+                onClose()
             }
             .buttonStyle(.borderedProminent)
         }
@@ -56,36 +75,55 @@ struct XHSSyncSheet: View {
             }
         }
         .padding(18)
-        .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 18))
+        .background(panelFill, in: RoundedRectangle(cornerRadius: 18))
+        .overlay(panelStroke)
     }
 
     private var actionsPanel: some View {
-        HStack(spacing: 10) {
-            Button {
-                Task {
-                    await browserSync.syncFromChromeFavorites()
-                }
-            } label: {
-                Label("从当前 Chrome 收藏夹同步", systemImage: "arrow.triangle.2.circlepath")
-            }
-            .buttonStyle(.borderedProminent)
-            .disabled(browserSync.isImporting)
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 10) {
+                MacInputField(
+                    placeholder: "输入小红书地址",
+                    text: $xhsURLString,
+                    systemImage: "link",
+                    onSubmit: openTypedXHSURL
+                )
 
-            Button("打开下载文件夹") {
-                browserSync.openWatchedFolder()
-            }
-            .buttonStyle(.bordered)
-
-            Button("扫描旧同步文件") {
-                Task {
-                    await browserSync.scanInbox()
+                Button("打开小红书") {
+                    openTypedXHSURL()
                 }
+                .buttonStyle(.bordered)
+                .disabled(normalizedTypedXHSURL == nil)
             }
-            .buttonStyle(.bordered)
-            .disabled(browserSync.isImporting)
+
+            HStack(spacing: 10) {
+                Button {
+                    Task {
+                        await browserSync.syncFromChromeFavorites()
+                    }
+                } label: {
+                    Label("从当前 Chrome 收藏夹同步", systemImage: "arrow.triangle.2.circlepath")
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(browserSync.isImporting)
+
+                Button("打开下载文件夹") {
+                    browserSync.openWatchedFolder()
+                }
+                .buttonStyle(.bordered)
+
+                Button("扫描旧同步文件") {
+                    Task {
+                        await browserSync.scanInbox()
+                    }
+                }
+                .buttonStyle(.bordered)
+                .disabled(browserSync.isImporting)
+            }
         }
         .padding(18)
-        .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 18))
+        .background(panelFill, in: RoundedRectangle(cornerRadius: 18))
+        .overlay(panelStroke)
     }
 
     private var tipsPanel: some View {
@@ -98,7 +136,8 @@ struct XHSSyncSheet: View {
             tip("如果 Chrome 当前页不是收藏夹，这里会直接提示，不会卡住。")
         }
         .padding(18)
-        .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 18))
+        .background(panelFill, in: RoundedRectangle(cornerRadius: 18))
+        .overlay(panelStroke)
     }
 
     private func statusRow(title: String, value: String) -> some View {
@@ -117,6 +156,29 @@ struct XHSSyncSheet: View {
             .foregroundStyle(.secondary)
             .fixedSize(horizontal: false, vertical: true)
     }
+
+    private var panelFill: Color {
+        Color(NSColor.controlBackgroundColor)
+    }
+
+    private var panelStroke: some View {
+        RoundedRectangle(cornerRadius: 18)
+            .stroke(Color.black.opacity(0.06), lineWidth: 1)
+    }
+
+    private func openTypedXHSURL() {
+        guard let url = normalizedTypedXHSURL else { return }
+        openURL(url)
+    }
+
+    private var normalizedTypedXHSURL: URL? {
+        let trimmed = xhsURLString.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        let normalized = trimmed.hasPrefix("http://") || trimmed.hasPrefix("https://")
+            ? trimmed
+            : "https://\(trimmed)"
+        return URL(string: normalized)
+    }
 }
 
 private struct StatusPill: View {
@@ -134,6 +196,10 @@ private struct StatusPill: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
-        .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
+        .background(Color(NSColor.controlBackgroundColor), in: RoundedRectangle(cornerRadius: 10))
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.black.opacity(0.06), lineWidth: 1)
+        )
     }
 }

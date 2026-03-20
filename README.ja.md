@@ -1,46 +1,57 @@
 # 小紅書コレクションナビ
 
-[简体中文](./README.md) | [English](./README.en.md)
+<p align="center">増え続ける小紅書のお気に入りを、同期・分類・再閲覧・書き出しできる macOS デスクトップライブラリに変えるアプリです。</p>
 
-![小紅書コレクションナビ メイン画面](./docs/assets/app-overview.png)
+<p align="center">
+  <a href="https://github.com/leoyoyofiona/xiaohongshu-favorites/releases/latest"><img src="https://img.shields.io/github/v/release/leoyoyofiona/xiaohongshu-favorites?display_name=tag&label=Release" alt="Release" /></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License" /></a>
+  <img src="https://img.shields.io/badge/macOS-15%2B-black?logo=apple" alt="macOS 15+" />
+  <img src="https://img.shields.io/badge/Swift-6.2-F05138?logo=swift&logoColor=white" alt="Swift 6.2" />
+</p>
 
-小紅書のお気に入りを、あとで本当に使える形に整理するための macOS デスクトップアプリです。
+<p align="center">
+  <a href="./README.md">简体中文</a> · <a href="./README.en.md">English</a>
+</p>
 
-[最新版をダウンロード](https://github.com/leoyoyofiona/xiaohongshu-favorites/releases/latest) | [リリースノート](https://github.com/leoyoyofiona/xiaohongshu-favorites/releases/tag/v0.1.0)
+<p align="center">
+  <img src="./docs/assets/app-overview.png" alt="アプリ全体画面" width="100%" />
+</p>
 
-## 解決したい課題
+## 解決したいこと
 
-- お気に入りが増え続けて、必要な時に見つからない
+- お気に入りが増え続け、必要な時に見つけにくい
 - 論文、ツール、教育、アイデアが混ざって再利用しにくい
-- 小紅書の標準UIは長期整理に向いていない
+- 小紅書の標準お気に入りUIは、長期整理には向いていない
 - 原文や画像をまとめて保存するのが面倒
 
 ## 主な機能
 
-- Chrome で開いている小紅書お気に入りページから同期
-- 重複排除と自動分類
-- 3カラムの見やすいデスクトップUI
-- 既読、重要マーク、前の記事 / 次の記事移動
-- 現在の記事本文と画像をワンクリックで書き出し
+- Chrome で現在開いている小紅書お気に入りページから同期
+- 重複排除と自動主分類
+- 左に分類、中央に一覧、右に原文寄りの閲覧という 3 カラム構成
+- 既読、重要マーク、前の記事 / 次の記事、最近同期の再確認
+- 現在の記事本文、元リンク、画像一式をワンクリックで保存
+- アプリ内でそのまま小紅書を開いて閲覧・同期
 
-## 画面イメージ
+## スクリーンショット
 
-### メイン画面
+<p align="center">
+  <img src="./docs/assets/app-sync.png" alt="同期パネル" width="49%" />
+  <img src="./docs/assets/app-browser.png" alt="アプリ内の小紅書ブラウズ" width="49%" />
+</p>
 
-![小紅書コレクションナビ メイン画面全体](./docs/assets/app-overview.png)
-
-### 閲覧と書き出し
-
-![小紅書コレクションナビ 閲覧画面](./docs/assets/app-reading.png)
+<p align="center">
+  <sub>メイン画面 · 同期パネル · アプリ内ブラウズ</sub>
+</p>
 
 ## インストール
 
-### リリースからインストール
+### リリース版を使う
 
 1. [Releases](https://github.com/leoyoyofiona/xiaohongshu-favorites/releases/latest) を開く
 2. `小红书收藏导航.dmg` をダウンロード
 3. `小红书收藏导航.app` を `Applications` にドラッグ
-4. 初回起動で止められた場合は、右クリックして `開く`
+4. 初回起動で止められた場合は右クリックして `開く`
 
 ### ソースから起動
 
@@ -54,32 +65,46 @@
 swift run XHSOrganizerApp
 ```
 
-## 使い方
+## クイックスタート
 
 1. Chrome で小紅書のお気に入りページを開く
 2. アプリを開く
-3. `同步小红书` をクリック
-4. `从当前 Chrome 收藏夹同步` をクリック
-5. 同期後はアプリ内で閲覧、整理、書き出し
+3. `同步小红书` を押す
+4. `从当前 Chrome 收藏夹同步` を押す
+5. 以後はアプリ内で閲覧、整理、書き出し
 
 ## 現在の記事を書き出し
 
-`下载原文` を押すと:
+右側の `下载` を押すと:
 
-- 本文テキスト
-- 元リンク
-- 画像一式
+- `原文.txt`
+- `原文链接.txt`
+- 現在の記事の画像一式
 
-を `Downloads/小红书收藏导出/` に書き出します。
+を `Downloads/小红书收藏导出/` に保存します。
 
-## 同期方式
+## 現在の同期方式
 
-- 現在の同期は Chrome を利用します
-- これは現時点で最も安定しやすい方式です
-- 埋め込みWeb同期よりもリスク制御に引っかかりにくいです
-- 以前の不完全リンクで取り込んだデータは、再同期で改善する場合があります
+- 現在は Chrome 経由の同期を使います
+- これは現時点で最も安定しやすい方法です
+- 無理に完全埋め込み自動同期にするより、プラットフォーム側の制限に引っかかりにくいです
+- 過去の不完全リンクで取り込んだデータは再同期で改善する場合があります
 
-## パッケージ作成
+## 技術構成
+
+- `SwiftUI + AppKit` による macOS ネイティブUI
+- `WKWebView` によるアプリ内小紅書ブラウズ
+- ローカル保存による記事、状態、分類の管理
+- 同期、重複排除、再分類、書き出しの独自パイプライン
+
+## プロジェクト構成
+
+- `Sources/XHSOrganizerApp`: macOS UI とデスクトップロジック
+- `Sources/XHSOrganizerCore`: モデル、同期導入、分類、検索、書き出し
+- `scripts/build_dmg.sh`: `.app` と `.dmg` の生成
+- `scripts/generate_app_icon.py`: アプリアイコン生成
+
+## DMG の作成
 
 ```bash
 ./scripts/build_dmg.sh
@@ -89,3 +114,7 @@ swift run XHSOrganizerApp
 
 - `dist/小红书收藏导航.app`
 - `dist/小红书收藏导航.dmg`
+
+## ライセンス
+
+本プロジェクトは [MIT License](./LICENSE) で公開しています。

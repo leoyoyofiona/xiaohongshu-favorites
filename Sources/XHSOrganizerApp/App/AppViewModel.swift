@@ -4,6 +4,7 @@ import XHSOrganizerCore
 
 enum SidebarSelection: Hashable {
     case all
+    case recentSync
     case read
     case needsReview
     case pinned
@@ -34,6 +35,7 @@ final class AppViewModel {
     var importSheetPresented = false
     var settingsPresented = false
     var xhsSyncPresented = false
+    var xhsBrowserPresented = false
     var importFeedback: String?
 
     private let searchService = SearchService()
@@ -42,14 +44,17 @@ final class AppViewModel {
         "链接", "截图", "文本", "收件箱", "待复核", "已整理"
     ]
 
-    func searchHits(items: [SavedItem]) -> [SearchHit] {
+    func searchHits(items: [SavedItem], recentSyncedItemIDs: [UUID]) -> [SearchHit] {
         let query = SearchQuery(
             text: searchText,
             categoryFilters: selectionCategoryFilter(),
             sourceFilters: selectionSourceFilter(),
             sortMode: sortMode
         )
-        return searchService.search(items: filteredBySelection(items), query: query)
+        return searchService.search(
+            items: filteredBySelection(items, recentSyncedItemIDs: Set(recentSyncedItemIDs)),
+            query: query
+        )
     }
 
     func failedImports(from imports: [ImportItem]) -> [ImportItem] {
@@ -61,6 +66,7 @@ final class AppViewModel {
     func title(for selection: SidebarSelection, categories: [XHSOrganizerCore.Category]) -> String {
         switch selection {
         case .all: "全部收藏"
+        case .recentSync: "最近同步"
         case .read: "已读"
         case .needsReview: "待复核"
         case .pinned: "重点收藏"
@@ -128,11 +134,11 @@ final class AppViewModel {
             .map { $0 }
     }
 
-    func syncSelection(savedItems: [SavedItem], failedImports: [ImportItem]) {
-        if let selectedSavedItemID, !savedItems.contains(where: { $0.id == selectedSavedItemID }) {
-            self.selectedSavedItemID = savedItems.first?.id
+    func syncSelection(visibleSavedItems: [SavedItem], failedImports: [ImportItem]) {
+        if let selectedSavedItemID, !visibleSavedItems.contains(where: { $0.id == selectedSavedItemID }) {
+            self.selectedSavedItemID = visibleSavedItems.first?.id
         } else if selectedSavedItemID == nil {
-            self.selectedSavedItemID = savedItems.first?.id
+            self.selectedSavedItemID = visibleSavedItems.first?.id
         }
 
         if let selectedImportItemID, !failedImports.contains(where: { $0.id == selectedImportItemID }) {
@@ -142,11 +148,13 @@ final class AppViewModel {
         }
     }
 
-    private func filteredBySelection(_ items: [SavedItem]) -> [SavedItem] {
+    private func filteredBySelection(_ items: [SavedItem], recentSyncedItemIDs: Set<UUID>) -> [SavedItem] {
         let selected = items.filter { item in
             switch sidebarSelection {
             case .all:
                 return true
+            case .recentSync:
+                return recentSyncedItemIDs.contains(item.id)
             case .read:
                 return item.isRead
             case .needsReview:

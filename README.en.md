@@ -1,46 +1,57 @@
 # XHS Organizer
 
-[简体中文](./README.md) | [日本語](./README.ja.md)
+<p align="center">Turn a messy Xiaohongshu favorites folder into a desktop library you can sync, sort, revisit, and export on macOS.</p>
 
-![XHS Organizer Overview](./docs/assets/app-overview.png)
+<p align="center">
+  <a href="https://github.com/leoyoyofiona/xiaohongshu-favorites/releases/latest"><img src="https://img.shields.io/github/v/release/leoyoyofiona/xiaohongshu-favorites?display_name=tag&label=Release" alt="Release" /></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License" /></a>
+  <img src="https://img.shields.io/badge/macOS-15%2B-black?logo=apple" alt="macOS 15+" />
+  <img src="https://img.shields.io/badge/Swift-6.2-F05138?logo=swift&logoColor=white" alt="Swift 6.2" />
+</p>
 
-A macOS desktop app that turns a messy Xiaohongshu favorites folder into something you can actually sync, sort, revisit, and export.
+<p align="center">
+  <a href="./README.md">简体中文</a> · <a href="./README.ja.md">日本語</a>
+</p>
 
-[Download latest release](https://github.com/leoyoyofiona/xiaohongshu-favorites/releases/latest) | [Release notes](https://github.com/leoyoyofiona/xiaohongshu-favorites/releases/tag/v0.1.0)
+<p align="center">
+  <img src="./docs/assets/app-overview.png" alt="XHS Organizer overview" width="100%" />
+</p>
 
-## Why it exists
+## Why this app
 
-- Favorites keep growing, but useful content becomes harder to find.
-- Papers, tools, tutorials, and inspiration all get mixed together.
-- Xiaohongshu’s default UI is not built for long-term desktop organization.
-- Exporting the original text and images of a saved post is tedious.
+- Saved posts keep growing, but useful content becomes harder to find.
+- Papers, tools, tutorials, and inspiration get mixed together.
+- Xiaohongshu favorites are good for saving fast, but weak for long-term desktop organization.
+- Exporting original text and images manually is tedious.
 
 ## What it does
 
-- Syncs your Xiaohongshu favorites from the current Chrome favorites page.
-- Deduplicates and auto-categorizes saved items.
-- Gives you a clean 3-column desktop layout.
-- Supports read status, starred items, and previous/next article navigation.
+- Syncs from the Xiaohongshu favorites page currently open in Chrome.
+- Deduplicates and auto-categorizes posts into major groups.
+- Uses a 3-column desktop layout for categories, list, and reading.
+- Supports read status, starred items, previous / next navigation, and recent sync review.
 - Exports the current article text, source link, and all images in one click.
+- Opens Xiaohongshu directly inside the app for browsing and syncing.
 
 ## Screenshots
 
-### Main workspace
+<p align="center">
+  <img src="./docs/assets/app-sync.png" alt="Sync panel" width="49%" />
+  <img src="./docs/assets/app-browser.png" alt="In-app Xiaohongshu browser" width="49%" />
+</p>
 
-![XHS Organizer main workspace](./docs/assets/app-overview.png)
-
-### Reading and export
-
-![XHS Organizer reading view](./docs/assets/app-reading.png)
+<p align="center">
+  <sub>Main library · Sync panel · Xiaohongshu inside the app</sub>
+</p>
 
 ## Install
 
-### Install from release
+### Download a release
 
 1. Open [Releases](https://github.com/leoyoyofiona/xiaohongshu-favorites/releases/latest)
 2. Download `小红书收藏导航.dmg`
 3. Drag `小红书收藏导航.app` into `Applications`
-4. If macOS blocks the first launch, right-click and choose `Open`
+4. If macOS blocks first launch, right-click and choose `Open`
 
 ### Run from source
 
@@ -54,34 +65,41 @@ Requirements:
 swift run XHSOrganizerApp
 ```
 
-## How to use
+## Quick start
 
 1. Open your Xiaohongshu favorites page in Chrome.
 2. Open the app.
 3. Click `同步小红书`.
 4. Click `从当前 Chrome 收藏夹同步`.
-5. Browse, read, and export inside the app.
+5. Browse, classify, revisit, and export inside the app.
 
 ## Export current article
 
-Click `下载原文` in the detail pane:
+Click `下载` in the detail pane to export:
 
-- exports `原文.txt`
-- exports `原文链接.txt`
-- downloads all images from the current post
-- saves everything into `Downloads/小红书收藏导出/`
+- `原文.txt`
+- `原文链接.txt`
+- all images from the current post
+
+Saved by default to `Downloads/小红书收藏导出/`
 
 ## Current sync model
 
-- Sync currently depends on Chrome.
-- This is the most stable approach so far.
-- Embedded web syncing was more likely to trigger platform risk controls.
-- Older items imported with incomplete links may need one more sync pass.
+- Sync currently depends on Chrome because it is the most stable path so far.
+- Compared with forcing a fully embedded auto-sync flow, this approach is less likely to trigger platform risk controls.
+- Older incomplete items may need one more sync pass to improve original text and image coverage.
+
+## Tech stack
+
+- `SwiftUI + AppKit` for a native macOS UI
+- `WKWebView` for in-app Xiaohongshu browsing
+- local persistence for saved posts, states, and categories
+- custom import, deduplication, reclassification, and export pipeline
 
 ## Project structure
 
-- `Sources/XHSOrganizerApp`: macOS SwiftUI app
-- `Sources/XHSOrganizerCore`: models, import, classification, search
+- `Sources/XHSOrganizerApp`: macOS UI and desktop logic
+- `Sources/XHSOrganizerCore`: models, sync import, classification, search, export
 - `scripts/build_dmg.sh`: package `.app` and `.dmg`
 - `scripts/generate_app_icon.py`: generate the app icon
 
@@ -95,3 +113,7 @@ Outputs:
 
 - `dist/小红书收藏导航.app`
 - `dist/小红书收藏导航.dmg`
+
+## License
+
+Released under the [MIT License](./LICENSE).

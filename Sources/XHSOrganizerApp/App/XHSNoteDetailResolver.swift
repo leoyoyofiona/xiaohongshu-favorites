@@ -46,8 +46,10 @@ final class XHSNoteDetailResolver {
         let title = extractTitle(from: normalizedHTML)
         let text = extractBody(from: normalizedHTML)
         let images = extractImages(from: normalizedHTML)
+        let videos = extractVideos(from: normalizedHTML)
+        let isVideo = detectVideo(from: normalizedHTML)
 
-        guard (!text.isEmpty && !looksLikeCorruptedText(text)) || !images.isEmpty else {
+        guard (!text.isEmpty && !looksLikeCorruptedText(text)) || !images.isEmpty || !videos.isEmpty || isVideo else {
             throw ResolverError.noContent
         }
 
@@ -55,6 +57,8 @@ final class XHSNoteDetailResolver {
             title: title,
             text: text,
             images: images,
+            videos: videos,
+            isVideo: isVideo,
             blocked: false
         )
     }
@@ -113,6 +117,41 @@ final class XHSNoteDetailResolver {
             .filter { $0.hasPrefix("http") }
 
         return Array(NSOrderedSet(array: images)) as? [String] ?? images
+    }
+
+    private func extractVideos(from html: String) -> [String] {
+        let matches = allMatches(
+            in: html,
+            pattern: #""masterUrl":"((?:\\.|[^"])*)""#
+        ) + allMatches(
+            in: html,
+            pattern: #""backupUrl":"((?:\\.|[^"])*)""#
+        ) + allMatches(
+            in: html,
+            pattern: #""h264":\{"(?:\\.|[^"])*?"url":"((?:\\.|[^"])*)""#
+        ) + allMatches(
+            in: html,
+            pattern: #"(https?:\\\/\\\/[^"\\]+?\.(?:mp4|m3u8)[^"\\]*)"#
+        )
+
+        let videos = matches
+            .map(unescapeJSON)
+            .map { $0.replacingOccurrences(of: "http://", with: "https://") }
+            .map { $0.replacingOccurrences(of: #"\\u002F"#, with: "/") }
+            .filter { $0.hasPrefix("http") && ($0.contains(".mp4") || $0.contains(".m3u8")) }
+
+        return Array(NSOrderedSet(array: videos)) as? [String] ?? videos
+    }
+
+    private func detectVideo(from html: String) -> Bool {
+        let indicators = [
+            #""noteType":"video""#,
+            #""note_type":"video""#,
+            #""type":"video""#,
+            #""isVideo":true"#,
+            #""videoConsumer""#
+        ]
+        return indicators.contains(where: { html.localizedCaseInsensitiveContains($0) })
     }
 
     private func cleanupResolvedBody(_ text: String) -> String {
@@ -253,6 +292,8 @@ struct ResolvedNoteContent: Decodable {
     let title: String
     let text: String
     let images: [String]
+    let videos: [String]
+    let isVideo: Bool
     let blocked: Bool
 }
 

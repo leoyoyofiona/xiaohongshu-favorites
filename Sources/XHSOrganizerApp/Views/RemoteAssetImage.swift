@@ -4,8 +4,15 @@ import SwiftUI
 struct RemoteAssetImage: View {
     let asset: String?
     let placeholderSystemImage: String
+    let contentMode: ContentMode
 
     @StateObject private var loader = RemoteAssetLoader()
+
+    init(asset: String?, placeholderSystemImage: String, contentMode: ContentMode = .fill) {
+        self.asset = asset
+        self.placeholderSystemImage = placeholderSystemImage
+        self.contentMode = contentMode
+    }
 
     var body: some View {
         ZStack {
@@ -15,7 +22,7 @@ struct RemoteAssetImage: View {
             if let image = localImage ?? loader.image {
                 Image(nsImage: image)
                     .resizable()
-                    .scaledToFill()
+                    .modifier(ContentModeModifier(contentMode: contentMode))
             } else {
                 Image(systemName: placeholderSystemImage)
                     .font(.system(size: 22, weight: .medium))
@@ -31,6 +38,19 @@ struct RemoteAssetImage: View {
     private var localImage: NSImage? {
         guard let asset, !asset.hasPrefix("http") else { return nil }
         return NSImage(contentsOfFile: asset)
+    }
+}
+
+private struct ContentModeModifier: ViewModifier {
+    let contentMode: ContentMode
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if contentMode == .fit {
+            content.scaledToFit()
+        } else {
+            content.scaledToFill()
+        }
     }
 }
 

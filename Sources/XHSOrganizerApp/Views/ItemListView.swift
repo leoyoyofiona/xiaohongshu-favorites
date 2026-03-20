@@ -71,7 +71,10 @@ struct ItemListView: View {
             } else {
                 List(selection: $selectedSavedItemID) {
                     ForEach(hits) { hit in
-                        SavedItemRow(hit: hit)
+                        SavedItemRow(
+                            hit: hit,
+                            showReadState: selection == .recentSync
+                        )
                             .tag(hit.item.id)
                     }
                 }
@@ -119,6 +122,7 @@ struct ItemListView: View {
 
 private struct SavedItemRow: View {
     let hit: SearchHit
+    let showReadState: Bool
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -138,6 +142,11 @@ private struct SavedItemRow: View {
                     Text(categoryName)
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                    if showReadState {
+                        Text(hit.item.isRead ? "已读" : "未读")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(hit.item.isRead ? .green : .secondary)
+                    }
                     if hit.item.reviewState == .needsReview {
                         Text("待复核")
                             .font(.caption)

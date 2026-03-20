@@ -98,21 +98,17 @@ struct ImportSheet: View {
                 .font(.headline)
             TextEditor(text: $linkInput)
                 .font(.body.monospaced())
-                .padding(12)
-                .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 18))
+                .macEditorCard()
         }
     }
 
     private var textImportForm: some View {
         VStack(alignment: .leading, spacing: 12) {
-            TextField("标题（可选）", text: $textTitle)
-                .textFieldStyle(.roundedBorder)
-            TextField("来源链接（可选）", text: $textSourceURL)
-                .textFieldStyle(.roundedBorder)
+            MacInputField(placeholder: "标题（可选）", text: $textTitle, systemImage: "textformat")
+            MacInputField(placeholder: "来源链接（可选）", text: $textSourceURL, systemImage: "link")
             TextEditor(text: $textInput)
                 .font(.body)
-                .padding(12)
-                .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 18))
+                .macEditorCard()
         }
     }
 

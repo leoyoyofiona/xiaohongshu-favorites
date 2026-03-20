@@ -138,6 +138,8 @@ public struct SavedItem: Identifiable, Codable, Hashable, Sendable {
     public var isRead: Bool
     public var isCategoryManual: Bool
     public var sourceType: SourceType
+    public var hasVideo: Bool
+    public var videoAssets: [String]
 
     public init(
         id: UUID = UUID(),
@@ -159,7 +161,9 @@ public struct SavedItem: Identifiable, Codable, Hashable, Sendable {
         isPinned: Bool = false,
         isRead: Bool = false,
         isCategoryManual: Bool = false,
-        sourceType: SourceType = .text
+        sourceType: SourceType = .text,
+        hasVideo: Bool = false,
+        videoAssets: [String] = []
     ) {
         self.id = id
         self.canonicalKey = canonicalKey
@@ -181,6 +185,8 @@ public struct SavedItem: Identifiable, Codable, Hashable, Sendable {
         self.isRead = isRead
         self.isCategoryManual = isCategoryManual
         self.sourceType = sourceType
+        self.hasVideo = hasVideo
+        self.videoAssets = videoAssets
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -204,6 +210,8 @@ public struct SavedItem: Identifiable, Codable, Hashable, Sendable {
         case isRead
         case isCategoryManual
         case sourceType
+        case hasVideo
+        case videoAssets
     }
 
     public init(from decoder: Decoder) throws {
@@ -228,6 +236,8 @@ public struct SavedItem: Identifiable, Codable, Hashable, Sendable {
         isRead = try container.decodeIfPresent(Bool.self, forKey: .isRead) ?? false
         isCategoryManual = try container.decodeIfPresent(Bool.self, forKey: .isCategoryManual) ?? false
         sourceType = try container.decodeIfPresent(SourceType.self, forKey: .sourceType) ?? .text
+        hasVideo = try container.decodeIfPresent(Bool.self, forKey: .hasVideo) ?? false
+        videoAssets = try container.decodeIfPresent([String].self, forKey: .videoAssets) ?? []
     }
 }
 
@@ -287,6 +297,7 @@ public struct XHSSyncSettings: Codable, Hashable, Sendable {
     public var lastCheckedAt: Date?
     public var lastKnownRemoteCount: Int
     public var pendingUnsyncedCount: Int
+    public var recentSyncedItemIDs: [UUID]
 
     public init(
         lastFavoritesURL: String? = nil,
@@ -294,7 +305,8 @@ public struct XHSSyncSettings: Codable, Hashable, Sendable {
         lastSyncSummary: String = "尚未连接小红书",
         lastCheckedAt: Date? = nil,
         lastKnownRemoteCount: Int = 0,
-        pendingUnsyncedCount: Int = 0
+        pendingUnsyncedCount: Int = 0,
+        recentSyncedItemIDs: [UUID] = []
     ) {
         self.lastFavoritesURL = lastFavoritesURL
         self.lastSyncAt = lastSyncAt
@@ -302,6 +314,7 @@ public struct XHSSyncSettings: Codable, Hashable, Sendable {
         self.lastCheckedAt = lastCheckedAt
         self.lastKnownRemoteCount = lastKnownRemoteCount
         self.pendingUnsyncedCount = pendingUnsyncedCount
+        self.recentSyncedItemIDs = recentSyncedItemIDs
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -311,6 +324,7 @@ public struct XHSSyncSettings: Codable, Hashable, Sendable {
         case lastCheckedAt
         case lastKnownRemoteCount
         case pendingUnsyncedCount
+        case recentSyncedItemIDs
     }
 
     public init(from decoder: Decoder) throws {
@@ -321,5 +335,6 @@ public struct XHSSyncSettings: Codable, Hashable, Sendable {
         lastCheckedAt = try container.decodeIfPresent(Date.self, forKey: .lastCheckedAt)
         lastKnownRemoteCount = try container.decodeIfPresent(Int.self, forKey: .lastKnownRemoteCount) ?? 0
         pendingUnsyncedCount = try container.decodeIfPresent(Int.self, forKey: .pendingUnsyncedCount) ?? 0
+        recentSyncedItemIDs = try container.decodeIfPresent([UUID].self, forKey: .recentSyncedItemIDs) ?? []
     }
 }

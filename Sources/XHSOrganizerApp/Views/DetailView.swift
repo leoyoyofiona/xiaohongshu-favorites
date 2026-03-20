@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import WebKit
 import XHSOrganizerCore
 
 struct DetailView: View {
@@ -91,24 +92,31 @@ private struct SavedItemDetailPane: View {
     @State private var deleteConfirmationPresented = false
     @State private var resolvedText = ""
     @State private var resolvedImages: [String] = []
+    @State private var resolvedVideos: [String] = []
+    @State private var resolvedIsVideo = false
     @State private var resolveStatusText: String?
     @State private var isResolvingOriginal = false
     @State private var exportStatusText: String?
     @State private var isExporting = false
+    @State private var isShowingInlinePlayback = false
+    @State private var inlinePlaybackController = InlinePlaybackController()
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: 12) {
             header
             actionBar
-            categoryBar
             fallbackOriginalCard
         }
-        .padding(22)
+        .padding(16)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(Color(NSColor.windowBackgroundColor))
         .task(id: item.id) {
+            resetTransientState()
             markAsReadIfNeeded()
             await resolveOriginalIfNeeded()
+        }
+        .onDisappear {
+            inlinePlaybackController.reset()
         }
         .confirmationDialog("删除这篇收藏？", isPresented: $deleteConfirmationPresented) {
             Button("删除", role: .destructive) {
@@ -121,7 +129,7 @@ private struct SavedItemDetailPane: View {
     }
 
     private var fallbackOriginalCard: some View {
-        ScrollView {
+        ScrollView(.vertical, showsIndicators: true) {
             VStack(alignment: .leading, spacing: 18) {
                 originalCard
             }
@@ -155,88 +163,85 @@ private struct SavedItemDetailPane: View {
     }
 
     private var actionBar: some View {
-        HStack(spacing: 12) {
-            actionButton(
-                title: item.isRead ? "已读" : "标记已读",
-                systemImage: item.isRead ? "checkmark.circle.fill" : "checkmark.circle"
-            ) {
-                item.isRead.toggle()
-                persistChanges()
-            }
-
-            actionButton(
-                title: item.isPinned ? "重点收藏" : "标为重点",
-                systemImage: item.isPinned ? "heart.fill" : "heart"
-            ) {
-                item.isPinned.toggle()
-                persistChanges()
-            }
-
-            Button {
-                selectPrevious()
-            } label: {
-                Label("上一篇", systemImage: "chevron.up")
-            }
-            .buttonStyle(.bordered)
-            .disabled(previousItemID == nil)
-
-            Button {
-                selectNext()
-            } label: {
-                Label("下一篇", systemImage: "chevron.down")
-            }
-            .buttonStyle(.bordered)
-            .disabled(nextItemID == nil)
-
-            Button {
-                Task {
-                    await exportCurrentItem()
-                }
-            } label: {
-                Label(isExporting ? "导出中…" : "下载原文", systemImage: "square.and.arrow.down")
-            }
-            .buttonStyle(.bordered)
-            .disabled(isExporting)
-
-            Spacer(minLength: 0)
-
-            if let url = URL(string: item.sourceURL ?? "") {
-                Button("打开原文") {
-                    openURL(url)
-                }
-                .buttonStyle(.borderedProminent)
-            }
-
-            Button("删除", role: .destructive) {
-                deleteConfirmationPresented = true
-            }
-            .buttonStyle(.bordered)
-        }
-    }
-
-    private var categoryBar: some View {
-        HStack(spacing: 12) {
-            TagBadge(text: categoryName(for: item.primaryCategorySlug), tint: .green)
-
-            Picker("分类", selection: categoryBinding) {
-                ForEach(categories.sorted(by: { $0.sortOrder < $1.sortOrder })) { category in
-                    Text(category.name).tag(category.slug)
-                }
-            }
-            .labelsHidden()
-            .frame(maxWidth: 180, alignment: .leading)
-
-            if item.isCategoryManual {
-                Button("恢复自动分类") {
-                    item.isCategoryManual = false
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                actionButton(
+                    title: item.isRead ? "已读" : "未读",
+                    systemImage: item.isRead ? "checkmark.circle.fill" : "checkmark.circle"
+                ) {
+                    item.isRead.toggle()
                     persistChanges()
+                }
+
+                actionButton(
+                    title: item.isPinned ? "重点" : "重点",
+                    systemImage: item.isPinned ? "heart.fill" : "heart"
+                ) {
+                    item.isPinned.toggle()
+                    persistChanges()
+                }
+
+                Button {
+                    selectPrevious()
+                } label: {
+                    Label("上一篇", systemImage: "chevron.up")
+                }
+                .buttonStyle(.bordered)
+                .disabled(previousItemID == nil)
+
+                Button {
+                    selectNext()
+                } label: {
+                    Label("下一篇", systemImage: "chevron.down")
+                }
+                .buttonStyle(.bordered)
+                .disabled(nextItemID == nil)
+
+                TagBadge(text: categoryName(for: item.primaryCategorySlug), tint: .green)
+
+                Picker("分类", selection: categoryBinding) {
+                    ForEach(categories.sorted(by: { $0.sortOrder < $1.sortOrder })) { category in
+                        Text(category.name).tag(category.slug)
+                    }
+                }
+                .labelsHidden()
+                .pickerStyle(.menu)
+                .frame(width: 120, alignment: .leading)
+
+                if item.isCategoryManual {
+                    Button("自动") {
+                        item.isCategoryManual = false
+                        persistChanges()
+                    }
+                    .buttonStyle(.bordered)
+                }
+
+                Button {
+                    Task {
+                        await exportCurrentItem()
+                    }
+                } label: {
+                    Label(isExporting ? "导出中…" : "下载", systemImage: "square.and.arrow.down")
+                }
+                .buttonStyle(.bordered)
+                .disabled(isExporting)
+
+                if let url = URL(string: item.sourceURL ?? "") {
+                    Button("原文") {
+                        openURL(url)
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+
+                Button("删除", role: .destructive) {
+                    deleteConfirmationPresented = true
                 }
                 .buttonStyle(.bordered)
             }
-
-            Spacer(minLength: 0)
+            .controlSize(.small)
+            .padding(.horizontal, 2)
+            .padding(.vertical, 2)
         }
-        .padding(.horizontal, 2)
     }
 
     private var originalCard: some View {
@@ -268,6 +273,10 @@ private struct SavedItemDetailPane: View {
                 imageGallery
             }
 
+            if isVideoNote, let noteURL = noteSourceURL {
+                videoOpenCard(noteURL: noteURL)
+            }
+
             if let sourceURL = item.sourceURL {
                 Text(sourceURL)
                     .font(.footnote)
@@ -284,17 +293,15 @@ private struct SavedItemDetailPane: View {
     }
 
     private var imageGallery: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 14) {
-                ForEach(displayImages, id: \.self) { asset in
-                    AssetImageView(asset: asset)
-                        .frame(width: 360, height: 460)
-                        .clipShape(RoundedRectangle(cornerRadius: 22))
-                        .overlay {
-                            RoundedRectangle(cornerRadius: 22)
-                                .stroke(Color.black.opacity(0.05), lineWidth: 1)
-                        }
-                }
+        VStack(spacing: 14) {
+            ForEach(displayImages, id: \.self) { asset in
+                AssetImageView(asset: asset, contentMode: .fit)
+                    .frame(maxWidth: .infinity, maxHeight: 760, alignment: .center)
+                    .clipShape(RoundedRectangle(cornerRadius: 22))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 22)
+                            .stroke(Color.black.opacity(0.05), lineWidth: 1)
+                    }
             }
         }
     }
@@ -336,6 +343,64 @@ private struct SavedItemDetailPane: View {
             return resolvedImages
         }
         return item.imageAssets
+    }
+
+    private var isVideoNote: Bool {
+        item.hasVideo || resolvedIsVideo || !resolvedVideos.isEmpty || !item.videoAssets.isEmpty
+    }
+
+    private var noteSourceURL: URL? {
+        guard let raw = item.sourceURL else { return nil }
+        return URL(string: raw)
+    }
+
+    @ViewBuilder
+    private func videoOpenCard(noteURL: URL) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("这是一篇视频笔记")
+                .font(.headline)
+            Text("点击播放后，会在右侧当前区域直接展开播放，不再跳转新窗口。")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            HStack(spacing: 10) {
+                Button {
+                    playInlineVideo(noteURL: noteURL)
+                } label: {
+                    Label(isShowingInlinePlayback ? "重新播放" : "播放视频", systemImage: "play.rectangle")
+                }
+                .buttonStyle(.borderedProminent)
+
+                if isShowingInlinePlayback {
+                    Button("收起") {
+                        isShowingInlinePlayback = false
+                    }
+                    .buttonStyle(.bordered)
+                }
+            }
+
+            if isShowingInlinePlayback {
+                InlinePlaybackView(webView: inlinePlaybackController.webView)
+                    .frame(maxWidth: .infinity, minHeight: 420, idealHeight: 560, maxHeight: 680)
+                    .clipShape(RoundedRectangle(cornerRadius: 18))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 18)
+                            .stroke(Color.black.opacity(0.06), lineWidth: 1)
+                    }
+            }
+        }
+        .padding(18)
+        .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 18))
+    }
+
+    private func playInlineVideo(noteURL: URL) {
+        if let videoURLString = resolvedVideos.first ?? item.videoAssets.first,
+           let videoURL = URL(string: videoURLString) {
+            inlinePlaybackController.loadVideo(url: videoURL)
+        } else {
+            inlinePlaybackController.load(url: noteURL)
+        }
+        isShowingInlinePlayback = true
     }
 
     private var sourceHost: String? {
@@ -397,15 +462,21 @@ private struct SavedItemDetailPane: View {
         persistChanges()
     }
 
-    private func resolveOriginalIfNeeded() async {
+    private func resetTransientState() {
         resolvedText = ""
         resolvedImages = []
+        resolvedVideos = []
+        resolvedIsVideo = item.hasVideo
         resolveStatusText = nil
+        exportStatusText = nil
+        isShowingInlinePlayback = false
+        inlinePlaybackController.reset()
+    }
 
+    private func resolveOriginalIfNeeded() async {
         guard let raw = item.sourceURL,
               let url = URL(string: raw),
-              raw.contains("xiaohongshu.com/explore/"),
-              raw.contains("xsec_token=")
+              raw.contains("xiaohongshu.com/explore/")
         else {
             return
         }
@@ -413,11 +484,13 @@ private struct SavedItemDetailPane: View {
         let currentText = item.fullText.trimmingCharacters(in: .whitespacesAndNewlines)
         let hasUsefulResolvedText = resolvedText.trimmingCharacters(in: .whitespacesAndNewlines).count >= 120
         let looksLikePreviewOnly = currentText.components(separatedBy: .newlines).count <= 6 && currentText.count < 400
-        let shouldResolve = !hasUsefulResolvedText && (currentText.isEmpty || looksLikeNoiseText(currentText) || looksLikeCorruptedText(currentText) || looksLikePreviewOnly)
+        let shouldResolveText = !hasUsefulResolvedText && (currentText.isEmpty || looksLikeNoiseText(currentText) || looksLikeCorruptedText(currentText) || looksLikePreviewOnly)
+        let shouldProbeVideo = !item.hasVideo && item.videoAssets.isEmpty
+        let shouldResolve = shouldResolveText || shouldProbeVideo
         guard shouldResolve else { return }
 
         isResolvingOriginal = true
-        resolveStatusText = "正在获取这篇笔记的原文内容…"
+        resolveStatusText = shouldProbeVideo ? "正在识别这篇笔记是否为视频…" : "正在获取这篇笔记的原文内容…"
         defer { isResolvingOriginal = false }
 
         do {
@@ -432,6 +505,14 @@ private struct SavedItemDetailPane: View {
             if !resolved.images.isEmpty {
                 resolvedImages = resolved.images
                 item.imageAssets = resolved.images
+            }
+            if !resolved.videos.isEmpty {
+                resolvedVideos = resolved.videos
+                item.videoAssets = resolved.videos
+            }
+            if resolved.isVideo {
+                resolvedIsVideo = true
+                item.hasVideo = true
             }
             if !resolved.title.isEmpty, item.title.count < resolved.title.count {
                 item.title = resolved.title
@@ -495,9 +576,92 @@ private struct SavedItemDetailPane: View {
 
 private struct AssetImageView: View {
     let asset: String
+    let contentMode: ContentMode
 
     var body: some View {
-        RemoteAssetImage(asset: asset, placeholderSystemImage: "photo")
+        RemoteAssetImage(asset: asset, placeholderSystemImage: "photo", contentMode: contentMode)
+    }
+}
+
+@MainActor
+private final class InlinePlaybackController {
+    let webView: WKWebView
+
+    init() {
+        webView = WKWebView(frame: .zero, configuration: AppWebSession.makeConfiguration())
+        webView.setValue(false, forKey: "drawsBackground")
+    }
+
+    func load(url: URL) {
+        webView.load(URLRequest(url: url))
+    }
+
+    func loadVideo(url: URL) {
+        let escapedURL = url.absoluteString
+            .replacingOccurrences(of: "&", with: "&amp;")
+            .replacingOccurrences(of: "\"", with: "&quot;")
+        let html = """
+        <!doctype html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <style>
+            html, body {
+              margin: 0;
+              padding: 0;
+              background: #0b0b0b;
+              height: 100%;
+              overflow: hidden;
+            }
+            .wrap {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              width: 100%;
+              height: 100%;
+              background: #0b0b0b;
+            }
+            video {
+              width: 100%;
+              height: 100%;
+              object-fit: contain;
+              background: #000;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="wrap">
+            <video controls playsinline webkit-playsinline autoplay preload="metadata" src="\(escapedURL)"></video>
+          </div>
+        </body>
+        </html>
+        """
+        webView.loadHTMLString(html, baseURL: nil)
+    }
+
+    func reset() {
+        webView.stopLoading()
+        webView.loadHTMLString(
+            """
+            <!doctype html>
+            <html>
+            <body style="margin:0;background:#0b0b0b;"></body>
+            </html>
+            """,
+            baseURL: nil
+        )
+    }
+}
+
+private struct InlinePlaybackView: NSViewRepresentable {
+    let webView: WKWebView
+
+    func makeNSView(context: Context) -> WKWebView {
+        webView
+    }
+
+    func updateNSView(_ nsView: WKWebView, context: Context) {
     }
 }
 
