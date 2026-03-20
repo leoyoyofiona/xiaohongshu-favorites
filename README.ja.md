@@ -2,6 +2,8 @@
 
 <p align="center">増え続ける小紅書のお気に入りを、同期・分類・再閲覧・書き出しできる macOS デスクトップライブラリに変えるアプリです。</p>
 
+<p align="center"><strong>macOS 専用です。macOS 15 以上が必要で、Windows / Linux には対応していません。</strong></p>
+
 <p align="center">
   <a href="https://github.com/leoyoyofiona/xiaohongshu-favorites/releases/latest"><img src="https://img.shields.io/github/v/release/leoyoyofiona/xiaohongshu-favorites?display_name=tag&label=Release" alt="Release" /></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License" /></a>
@@ -35,14 +37,17 @@
 
 ## スクリーンショット
 
-<p align="center">
-  <img src="./docs/assets/app-sync.png" alt="同期パネル" width="49%" />
-  <img src="./docs/assets/app-browser.png" alt="アプリ内の小紅書ブラウズ" width="49%" />
-</p>
+### 1. 全体画面
 
-<p align="center">
-  <sub>メイン画面 · 同期パネル · アプリ内ブラウズ</sub>
-</p>
+![全体画面](./docs/assets/app-overview.png)
+
+### 2. 同期状態
+
+![同期状態](./docs/assets/app-sync.png)
+
+### 3. 原文確認 / 動画再生
+
+![原文確認と動画再生](./docs/assets/app-reading.png)
 
 ## インストール
 
@@ -52,6 +57,11 @@
 2. `小红书收藏导航.dmg` をダウンロード
 3. `小红书收藏导航.app` を `Applications` にドラッグ
 4. 初回起動で止められた場合は右クリックして `開く`
+
+補足:
+
+- 本ソフトは macOS 15 以上専用です。
+- 一般配布用パッケージは `.dmg` 形式です。
 
 ### ソースから起動
 

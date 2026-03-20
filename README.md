@@ -2,6 +2,8 @@
 
 <p align="center">把越存越乱的小红书收藏夹，整理成一个适合桌面端复看、分类、导出和持续整理的 macOS 工具。</p>
 
+<p align="center"><strong>仅适用于 macOS 15 及以上系统，不支持 Windows / Linux。</strong></p>
+
 <p align="center">
   <a href="https://github.com/leoyoyofiona/xiaohongshu-favorites/releases/latest"><img src="https://img.shields.io/github/v/release/leoyoyofiona/xiaohongshu-favorites?display_name=tag&label=Release" alt="Release" /></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License" /></a>
@@ -35,14 +37,17 @@
 
 ## 界面预览
 
-<p align="center">
-  <img src="./docs/assets/app-sync.png" alt="同步小红书面板" width="49%" />
-  <img src="./docs/assets/app-browser.png" alt="程序内打开小红书" width="49%" />
-</p>
+### 1. 整体界面
 
-<p align="center">
-  <sub>主界面 · 同步面板 · App 内浏览小红书</sub>
-</p>
+![整体界面](./docs/assets/app-overview.png)
+
+### 2. 同步状态
+
+![同步状态](./docs/assets/app-sync.png)
+
+### 3. 直接查看原文或播放视频
+
+![原文与视频阅读界面](./docs/assets/app-reading.png)
 
 ## 安装
 
@@ -52,6 +57,11 @@
 2. 下载 `小红书收藏导航.dmg`
 3. 双击打开后，把 `小红书收藏导航.app` 拖进 `Applications`
 4. 如果 macOS 首次拦截，右键 `打开` 一次即可
+
+说明：
+
+- 本软件仅适用于 macOS 15 及以上版本。
+- 发布包为 `.dmg`，面向 Mac 用户直接安装使用。
 
 ### 从源码运行
 

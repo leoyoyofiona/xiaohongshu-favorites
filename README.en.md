@@ -2,6 +2,8 @@
 
 <p align="center">Turn a messy Xiaohongshu favorites folder into a desktop library you can sync, sort, revisit, and export on macOS.</p>
 
+<p align="center"><strong>macOS only. Requires macOS 15 or later. Windows and Linux are not supported.</strong></p>
+
 <p align="center">
   <a href="https://github.com/leoyoyofiona/xiaohongshu-favorites/releases/latest"><img src="https://img.shields.io/github/v/release/leoyoyofiona/xiaohongshu-favorites?display_name=tag&label=Release" alt="Release" /></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License" /></a>
@@ -35,14 +37,17 @@
 
 ## Screenshots
 
-<p align="center">
-  <img src="./docs/assets/app-sync.png" alt="Sync panel" width="49%" />
-  <img src="./docs/assets/app-browser.png" alt="In-app Xiaohongshu browser" width="49%" />
-</p>
+### 1. Full library view
 
-<p align="center">
-  <sub>Main library · Sync panel · Xiaohongshu inside the app</sub>
-</p>
+![Full library view](./docs/assets/app-overview.png)
+
+### 2. Sync status
+
+![Sync status](./docs/assets/app-sync.png)
+
+### 3. Read original content or play video
+
+![Reading and video view](./docs/assets/app-reading.png)
 
 ## Install
 
@@ -52,6 +57,11 @@
 2. Download `小红书收藏导航.dmg`
 3. Drag `小红书收藏导航.app` into `Applications`
 4. If macOS blocks first launch, right-click and choose `Open`
+
+Notes:
+
+- This software is for macOS 15+ only.
+- The public install package is distributed as a `.dmg`.
 
 ### Run from source
 
